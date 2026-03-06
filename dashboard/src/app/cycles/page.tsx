@@ -1,11 +1,13 @@
 import CycleTimeline from '@/components/CycleTimeline';
 import { StatCard, BlockProgress } from '@/components/MetricChart';
 import { getAllCycles } from '@/lib/cycles';
+import { getConsensus } from '@/lib/consensus';
 
-export default function CyclesPage() {
+export default async function CyclesPage() {
   const cycles = getAllCycles();
+  const consensus = await getConsensus();
 
-  const totalCycles = cycles.length;
+  const totalCycles = cycles.length > 0 ? cycles.length : consensus.cycleNumber;
   const successCount = cycles.filter(c => c.success).length;
   const failCount = totalCycles - successCount;
 
@@ -135,7 +137,31 @@ export default function CyclesPage() {
         <CycleTimeline cycles={cycles} />
       </div>
 
-      {/* Empty state */}
+      {/* Consensus-only state (cycles ran but no log files) */}
+      {cycles.length === 0 && consensus.cycleNumber > 0 && (
+        <div className="border-3 border-accent-green/30 bg-surface p-6">
+          <div className="text-xs text-accent-green tracking-widest mb-3">
+            CONSENSUS-DERIVED DATA // no log files found
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+            <StatCard label="CYCLES (CONSENSUS)" value={consensus.cycleNumber} color="#00FF41" />
+            <StatCard label="PHASE" value={consensus.phase.toUpperCase()} color="#00D4FF" />
+            <StatCard label="LOG FILES" value={0} color="#FF3333" subtitle="daemon not started" />
+          </div>
+          <div className="text-xs opacity-50 border-t border-white/10 pt-3 mt-3">
+            {consensus.cycleNumber} cycles ran via direct claude -p (not via auto-loop.sh daemon).
+            Start the daemon with <code className="text-accent-green">make start</code> to generate per-cycle log files.
+          </div>
+          {consensus.whatWeDid && (
+            <div className="mt-4 border border-white/10 p-3">
+              <div className="text-xs text-accent-yellow tracking-widest mb-2">RECENT ACTIVITY (from consensus)</div>
+              <pre className="text-xs text-fg opacity-70 whitespace-pre-wrap">{consensus.whatWeDid}</pre>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Truly empty state */}
       {totalCycles === 0 && (
         <div className="border-3 border-white/20 bg-surface p-8 text-center">
           <pre className="text-accent-blue text-xs mb-4 leading-relaxed inline-block">

@@ -16,6 +16,7 @@ export default async function CommandCenter() {
 
   const activatedAgents = agents.filter(a => a.hasPersona).length;
   const totalOutputs = agents.reduce((sum, a) => sum + a.outputCount, 0);
+  const effectiveCycleCount = cycles.length > 0 ? cycles.length : consensus.cycleNumber;
 
   // Calculate streak
   let streak = 0;
@@ -38,8 +39,8 @@ export default async function CommandCenter() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           label="TOTAL CYCLES"
-          value={String(cycles.length).padStart(3, '0')}
-          subtitle={streak > 0 ? `${streak} cycle streak` : 'no streak'}
+          value={String(effectiveCycleCount).padStart(3, '0')}
+          subtitle={streak > 0 ? `${streak} cycle streak` : (effectiveCycleCount > 0 ? 'from consensus' : 'no streak')}
           color="#00FF41"
         />
         <StatCard
@@ -121,8 +122,8 @@ export default async function CommandCenter() {
         </div>
       )}
 
-      {/* Boot screen when empty */}
-      {cycles.length === 0 && totalOutputs === 0 && (
+      {/* Boot screen when truly empty (no cycles from logs AND no cycles from consensus) */}
+      {effectiveCycleCount === 0 && totalOutputs === 0 && (
         <div className="border-3 border-accent-green/30 bg-surface p-8 text-center">
           <pre className="text-accent-green text-xs mb-6 leading-relaxed inline-block text-left">
 {`
