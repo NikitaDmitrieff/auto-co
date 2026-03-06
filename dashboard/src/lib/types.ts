@@ -77,19 +77,19 @@ export interface AgentInteraction {
 // The 14 agent roles with their metadata
 export const AGENT_ROSTER: Record<string, { role: string; layer: AgentLayer; expert: string; color: string }> = {
   ceo: { role: 'CEO', layer: 'Strategy', expert: 'Jeff Bezos', color: '#FFE000' },
-  cfo: { role: 'CFO', layer: 'Business', expert: 'Ruth Porat', color: '#FF0080' },
-  critic: { role: 'Critic', layer: 'Intelligence', expert: 'Charlie Munger', color: '#FF3333' },
+  cfo: { role: 'CFO', layer: 'Business', expert: 'Patrick Campbell', color: '#FF0080' },
+  critic: { role: 'Critic', layer: 'Strategy', expert: 'Charlie Munger', color: '#FF3333' },
   cto: { role: 'CTO', layer: 'Engineering', expert: 'Werner Vogels', color: '#00D4FF' },
   devops: { role: 'DevOps/SRE', layer: 'Engineering', expert: 'Kelsey Hightower', color: '#00FF41' },
-  fullstack: { role: 'Full-Stack Dev', layer: 'Engineering', expert: 'Guillermo Rauch', color: '#00FF88' },
-  interaction: { role: 'Interaction Design', layer: 'Product', expert: 'Don Norman', color: '#FF6B00' },
+  fullstack: { role: 'Full-Stack Dev', layer: 'Engineering', expert: 'DHH', color: '#00FF88' },
+  interaction: { role: 'Interaction Design', layer: 'Product', expert: 'Alan Cooper', color: '#FF6B00' },
   marketing: { role: 'Marketing', layer: 'Business', expert: 'Seth Godin', color: '#FF0080' },
-  operations: { role: 'Operations', layer: 'Business', expert: 'Tim Cook', color: '#888888' },
-  product: { role: 'Product Manager', layer: 'Product', expert: 'Marty Cagan', color: '#00D4FF' },
-  qa: { role: 'QA Engineer', layer: 'Engineering', expert: 'James Whittaker', color: '#FFE000' },
-  research: { role: 'Research', layer: 'Intelligence', expert: 'Clayton Christensen', color: '#9B59B6' },
+  operations: { role: 'Operations', layer: 'Business', expert: 'Paul Graham', color: '#888888' },
+  product: { role: 'Product Design', layer: 'Product', expert: 'Don Norman', color: '#00D4FF' },
+  qa: { role: 'QA', layer: 'Engineering', expert: 'James Bach', color: '#FFE000' },
+  research: { role: 'Research', layer: 'Intelligence', expert: 'Ben Thompson', color: '#9B59B6' },
   sales: { role: 'Sales', layer: 'Business', expert: 'Aaron Ross', color: '#FF3333' },
-  ui: { role: 'UI Designer', layer: 'Product', expert: 'Dieter Rams', color: '#00FF41' },
+  ui: { role: 'UI Designer', layer: 'Product', expert: 'Matias Duarte', color: '#00FF41' },
 };
 
 export const LAYER_COLORS: Record<AgentLayer, string> = {

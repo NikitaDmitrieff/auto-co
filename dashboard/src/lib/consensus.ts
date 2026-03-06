@@ -9,12 +9,15 @@ const CONSENSUS_PATH = path.join(AUTO_CO_ROOT, 'memories', 'consensus.md');
 
 function detectPhase(content: string): CompanyPhase {
   const lower = content.toLowerCase();
-  if (lower.includes('phase: growing') || lower.includes('## growing')) return 'growing';
-  if (lower.includes('phase: launching') || lower.includes('## launching')) return 'launching';
-  if (lower.includes('phase: building') || lower.includes('## building')) return 'building';
-  if (lower.includes('phase: validating') || lower.includes('## validating')) return 'validating';
-  if (lower.includes('phase: exploring') || lower.includes('## exploring')) return 'exploring';
-  if (lower.includes('phase: pivoting') || lower.includes('## pivoting')) return 'pivoting';
+  // Match "## Current Phase\nBuilding" format and "phase: building" format
+  const phaseLineMatch = lower.match(/##\s*current\s+phase\s*\n\s*(\w+)/);
+  const phaseLine = phaseLineMatch ? phaseLineMatch[1] : '';
+  if (phaseLine === 'growing' || lower.includes('phase: growing')) return 'growing';
+  if (phaseLine === 'launching' || lower.includes('phase: launching')) return 'launching';
+  if (phaseLine === 'building' || lower.includes('phase: building')) return 'building';
+  if (phaseLine === 'validating' || lower.includes('phase: validating')) return 'validating';
+  if (phaseLine === 'exploring' || lower.includes('phase: exploring')) return 'exploring';
+  if (phaseLine === 'pivoting' || lower.includes('phase: pivoting')) return 'pivoting';
   return 'day0';
 }
 
@@ -27,6 +30,10 @@ function extractSection(content: string, heading: string): string {
 }
 
 function extractCycleNumber(content: string): number {
+  // Match "## Cycles Completed\n17" format
+  const headingMatch = content.match(/##\s*Cycles?\s*Completed\s*\n\s*(\d+)/i);
+  if (headingMatch) return parseInt(headingMatch[1], 10);
+  // Fallback: match "Cycle 17" or "cycle: 17" anywhere
   const match = content.match(/cycle[:\s#]*(\d+)/i);
   return match ? parseInt(match[1], 10) : 0;
 }
@@ -49,7 +56,11 @@ function extractActiveAgents(content: string): string[] {
 function extractHumanEscalation(content: string): string | null {
   const section = extractSection(content, 'Human Escalation') ||
                   extractSection(content, 'Escalation');
-  if (!section || section.toLowerCase().includes('none') || section.trim() === '') return null;
+  if (!section || section.trim() === '') return null;
+  const lower = section.toLowerCase();
+  // No escalation if pending is "no", "none", or "N/A"
+  if (lower.includes('pending request: no') || lower.includes('pending: none') || lower.includes('pending: no')) return null;
+  if (lower.includes('none') && !lower.includes('question')) return null;
   return section;
 }
 
