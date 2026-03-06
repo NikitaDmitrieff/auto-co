@@ -1,16 +1,18 @@
 import { getMetrics } from '@/lib/cycles';
 import { getAllAgents } from '@/lib/agents';
 import { getArtifactStats } from '@/lib/artifacts';
+import { getConsensus } from '@/lib/consensus';
 import { BarChart, StatCard, BlockProgress, Sparkline } from '@/components/MetricChart';
 import { AGENT_ROSTER, LAYER_COLORS } from '@/lib/types';
 import type { AgentLayer } from '@/lib/types';
 
-export default function MetricsPage() {
+export default async function MetricsPage() {
   const metrics = getMetrics();
   const agents = getAllAgents();
   const artifactStats = getArtifactStats();
+  const consensus = await getConsensus();
 
-  const hasData = metrics.totalCycles > 0;
+  const hasData = metrics.totalCycles > 0 || consensus.cycleNumber > 0;
 
   // Prepare agent activation data for chart
   const agentActivationData = Object.entries(AGENT_ROSTER).map(([id, meta]) => ({
@@ -112,14 +114,14 @@ export default function MetricsPage() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <StatCard
               label="TOTAL CYCLES"
-              value={String(metrics.totalCycles).padStart(3, '0')}
+              value={String(metrics.totalCycles || consensus.cycleNumber).padStart(3, '0')}
               color="#00FF41"
               large
             />
             <StatCard
-              label="SUCCESS RATE"
-              value={`${metrics.successRate.toFixed(0)}%`}
-              color={metrics.successRate >= 80 ? '#00FF41' : metrics.successRate >= 50 ? '#FFE000' : '#FF3333'}
+              label="PHASE"
+              value={(consensus.phase || 'day0').toUpperCase()}
+              color={consensus.phase === 'building' ? '#00FF41' : consensus.phase === 'launching' ? '#FF3333' : '#FFE000'}
               large
             />
             <StatCard
@@ -129,15 +131,15 @@ export default function MetricsPage() {
               large
             />
             <StatCard
-              label="AGENTS ACTIVE"
-              value={`${Object.keys(metrics.agentActivationCounts).length}/14`}
+              label="AGENTS LOADED"
+              value={`${agents.filter(a => a.hasPersona).length}/14`}
               color="#00D4FF"
               large
             />
             <StatCard
-              label="PHASES SEEN"
-              value={metrics.phaseTransitions.length + 1}
-              color="#FFE000"
+              label="DATA SOURCE"
+              value={metrics.totalCycles > consensus.cycleNumber ? 'LOGS' : 'CONSENSUS'}
+              color="#888888"
               large
             />
           </div>
@@ -247,12 +249,12 @@ export default function MetricsPage() {
               SYSTEM READOUT
             </div>
             <pre className="text-xs text-accent-green leading-relaxed">
-{`> TOTAL_CYCLES:     ${String(metrics.totalCycles).padStart(6)}
-> SUCCESS_RATE:     ${String(metrics.successRate.toFixed(1) + '%').padStart(6)}
-> AGENTS_ACTIVATED: ${String(Object.keys(metrics.agentActivationCounts).length).padStart(6)}/14
+{`> TOTAL_CYCLES:     ${String(metrics.totalCycles || consensus.cycleNumber).padStart(6)}
+> CURRENT_PHASE:    ${(consensus.phase || 'day0').toUpperCase().padStart(6)}
+> AGENTS_LOADED:    ${String(agents.filter(a => a.hasPersona).length).padStart(6)}/14
 > TOTAL_ARTIFACTS:  ${String(artifactStats.total).padStart(6)}
-> PHASE_CHANGES:    ${String(metrics.phaseTransitions.length).padStart(6)}
-> STALLS_DETECTED:  ${String(metrics.stallDetections.length).padStart(6)}
+> LOG_FILES:        ${String(metrics.totalCycles > consensus.cycleNumber ? metrics.totalCycles : 0).padStart(6)}
+> DATA_SOURCE:      ${(metrics.totalCycles > consensus.cycleNumber ? 'LOGS' : 'CONSENSUS').padStart(6)}
 > SYSTEM_STATUS:    NOMINAL`}
             </pre>
           </div>

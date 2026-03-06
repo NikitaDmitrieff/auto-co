@@ -4,6 +4,7 @@ import type { CycleLog, CompanyPhase, MetricsData, AgentInteraction } from './ty
 
 const AUTO_CO_ROOT = path.resolve(process.cwd(), '..');
 const LOGS_DIR = path.join(AUTO_CO_ROOT, 'logs');
+const CONSENSUS_PATH = path.join(AUTO_CO_ROOT, 'memories', 'consensus.md');
 
 function parseLogFile(filePath: string, fileName: string): CycleLog | null {
   try {
@@ -81,12 +82,28 @@ export function getCycleByNumber(num: number): CycleLog | null {
   return cycles.find(c => c.cycleNumber === num) || null;
 }
 
+function getConsensusMetrics(): { totalCycles: number; phase: CompanyPhase } {
+  try {
+    if (!fs.existsSync(CONSENSUS_PATH)) return { totalCycles: 0, phase: 'day0' };
+    const content = fs.readFileSync(CONSENSUS_PATH, 'utf-8');
+    const cycleMatch = content.match(/##\s*Cycles?\s*Completed\s*\n\s*(\d+)/i);
+    const totalCycles = cycleMatch ? parseInt(cycleMatch[1], 10) : 0;
+    const phaseMatch = content.match(/##\s*Current\s+Phase\s*\n\s*(\w+)/i);
+    const phase = (phaseMatch ? phaseMatch[1].toLowerCase() : 'day0') as CompanyPhase;
+    return { totalCycles, phase };
+  } catch {
+    return { totalCycles: 0, phase: 'day0' };
+  }
+}
+
 export function getMetrics(): MetricsData {
   const cycles = getAllCycles();
+  const consensus = getConsensusMetrics();
 
-  const totalCycles = cycles.length;
+  // Use log-based count if available, fall back to consensus
+  const totalCycles = cycles.length > 0 ? cycles.length : consensus.totalCycles;
   const successCount = cycles.filter(c => c.success).length;
-  const successRate = totalCycles > 0 ? (successCount / totalCycles) * 100 : 0;
+  const successRate = cycles.length > 0 ? (successCount / cycles.length) * 100 : (consensus.totalCycles > 0 ? 100 : 0);
 
   // Agent activation counts
   const agentActivationCounts: Record<string, number> = {};
